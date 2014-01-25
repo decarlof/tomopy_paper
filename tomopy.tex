@@ -132,9 +132,17 @@ Explain how anyone can contribute. How it is distributed. BSD License. Documenta
 
 \section{Methods} 
 
+In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of  measurement together with the rotation angle information is the entry point of the analysis pipeline.
+
+The framework is divided into three main modules as given in figure~1.
+
 Present here the concept of pipeline for data processing and distribution
 
 \subsection{Pre-processing methods}
+
+\subsubsection{Normalization}
+
+The need for this acquisition is to compensate for the effect of optical components in the beam path which are superimposed on the projections and show up artifacts in reconstructed images. 
 
 \subsubsection{Ring removal:}
 
