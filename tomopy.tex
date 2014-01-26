@@ -74,29 +74,37 @@ Abstract goes here.
 
 Analysis of large tomographic datasets at synchrotron light sources is becoming progressively more challenging  due to the increasing data acquisition rates that new technologies in X-ray sources and detectors enable. The next generation of synchrotron facilities that are currently under design or construction throughout the world will provide diffraction limited X-ray sources and is expected to boost the current data rates by several orders of magnitude and stressing the need for the development and integration of efficient analysis tools more than ever. Several synchrotron users, to take advantage of specific instrument characteristics and specifications,  already collect data at different facilities, but they are often left alone integrating this data with the available or home-grown software tools.
 
-There are often strong similarities within the same class of instruments that are not systematically utilized to build a coordinated software development platform or framework where each facility and user group can take advantage from or contribute in, ultimately saving on-site resources by sharing the computing tasks with the user community. Here we describe in detail an attempt to provide such a collaborative framework for the analysis of synchrotron tomographic data that has the potential to unify the effort of different facilities and beamlines performing similar tasks. The basic principles of this  Python/C++ based framework, called {\it TomopPy}, are: OS and data format independent, parallelizable, modular and supporting a functional programming style that many researchers in Academia prefer. 
+There are often strong similarities within the same class of instruments that are not systematically utilized to build a coordinated software development platform or framework where each facility and user group can take advantage from or contribute in, ultimately saving on-site resources by sharing the computing tasks with the user community. Here we describe in detail an attempt to provide such a collaborative framework for the analysis of synchrotron tomographic data that has the potential to unify the effort of different facilities and beamlines performing similar tasks. The basic principles of this  Python/C++ based framework, called {\it TomoPy}, are: OS and data format independent, parallelizable, modular and supporting a functional programming style that many researchers in Academia prefer. 
 
 
 \section{Background}
 
 When it comes to the digital storage of tomographic experimental data and the development of analysis tools at synchrotron light sources around the world, the situation is very heterogeneous. As different research teams and instruments have grown at various facilities, they have often developed local data and analysis models based on instrument hardware specificity and often drawing upon the particular preferences of a scientist writing software. 
 
-Many tomographic analysis tools utilize licensed, and often expensive, software packages like Matlab (Mathworks) and IDL (Exelis VIS), others rely on specific, and often complex to maintain, computing infrastructure like MPI-based CPU or GPU clusters. The availability of inexpensive multi-core CPU workstation and the reduced cost of computer memory  allowed to simplify the computing infrastructure required to process tomographic data \cite{rivers_spie_2012}, and started the development of single workstation tools able to perform most computing tasks. 
+Many tomographic analysis tools utilize licensed, and often expensive, software packages like Matlab \cite{matlab} and IDL \cite{exelis_vis}, others rely on specific, and often complex to maintain, computing infrastructure like MPI-based CPU or GPU clusters. The availability of inexpensive multi-core CPU workstations and the reduced cost of computer memory  allowed to simplify the computing infrastructure required to process tomographic data \cite{rivers_spie_2012}, and started the development of single workstation tools able to perform most computing tasks. 
 
 This transition is affecting all major synchrotron facilities where new effort is now dedicated into developing new tools that can be deployed at the facility for real time processing as well as distributed to users for off site data processing.
 
 
 \section{TomoPy: A python based framework}
 
-There is no free lunch when it comes to the integration of analysis methods. For example, Matlab's or IDL's coding practice which is based on matrix and linear algebra operations that many researchers get accustomed to but licensing fees are pricier than the alternatives. R, as an open-source alternative, offers a wide variety of statistical data analysis tools but has a high learning curve and is usually hard to maintain large projects. Python with its standard library on the other hand provides a modular, readable and manageable framework that researchers can use freely or contribute easily without facing any hassles. Besides, the native EPICS control software for synchrotron instruments is written in Python. These features combine to make Python the method of choice for development framework.
+There is no free lunch when it comes to the integration of analysis methods. For example, Matlab's or IDL's coding practice which is based on matrix and linear algebra operations that many researchers get accustomed to come with pricy licensing fees compared to open source alternatives. R, \cite{r}, as an open-source alternative, offers a wide variety of statistical data analysis tools but has a steep learning curve and is usually hard to maintain for large projects. Python with its standard library on the other hand provides a modular, readable and manageable framework that researchers can use freely or contribute easily without facing any hassles. Besides, the native  control software running at several synchrotron facilities, EPICS, \cite{epics}, is interfaced to Python \cite{pyepics}, allowing data analysis and real-time feedback on the instrumentation status. These features make Python the method of choice for development framework.
 
-Data processing in synchrotrons is essentially modular in nature such that the processes can be divided into a number of small independent steps. A natural way to segment the processes is to group functions according to the similarities in transformations applied on data as depicted in figure. 
+Tomographic data processing at synchrotrons is essentially modular in nature such that the processes can be divided into a number of small independent steps. A natural way to segment the processes is to group functions according to the similarities in transformations applied on data as depicted in figure \ref{fig:ProcessSegmentation}. 
 
-Explain how anyone can contribute. How it is distributed. BSD License. Documentation.
+
+\begin{figure}
+\centering
+%\includegraphics[width=0.5\textwidth]{figures/dx_MinimalTomo0.pdf}
+\caption{Processes Segmentation}
+\label{fig:ProcessSegmentation}
+\end{figure}
+
+{\it Explain how anyone can contribute. How it is distributed. BSD License. Documentation.}
 
 \section{Methods} 
 
-In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of measurement together with the rotation angle information is the entry point of the analysis pipeline.
+In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of measurement together with the rotation angle information are the entry point of the analysis pipeline.
 
 \subsection{Pre-processing module}
 
