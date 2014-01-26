@@ -72,47 +72,30 @@ Abstract goes here.
 
 \section{Introduction}
 
-Analysis of large tomographic datasets at synchrotron light sources is becoming progressively more challenging  due to the increasing data acquisition rates that new technologies in x-ray sources and detectors enable. A next generation of synchrotron facilities currently under design and construction around the world, will provide diffraction limited X-ray sources and is expected to boost the current data rates by several order of magnitude stimulating even more the need for efficient analysis tool development and integration. Several synchrotron users, to take advantage of specific instrument characteristics and specifications,  already collect data at different facilities, but they are often left alone integrating this data with available or home grown software tools.
+Analysis of large tomographic datasets at synchrotron light sources is becoming progressively more challenging  due to the increasing data acquisition rates that new technologies in X-ray sources and detectors enable. The next generation of synchrotron facilities that are currently under design or construction throughout the world will provide diffraction limited X-ray sources and is expected to boost the current data rates by several orders of magnitude and stressing the need for the development and integration of efficient analysis tools more than ever. Several synchrotron users, to take advantage of specific instrument characteristics and specifications,  already collect data at different facilities, but they are often left alone integrating this data with the available or home-grown software tools.
 
-{\it Explain important capabilities and vision: Uniting efforts of different facilities and beamlines doing similar tasks. Emphasize key terms: Open-source, collaborative, well-documented and maintained. Python/C++, OS independent, parallelizable, modular and able to support a functional programming style that many people in Academia prefer. }
-
-Within the same class of instruments there are often strong similarities that are not systematically utilized to build a coordinated software development platform or framework where each facility and user group can take advantage from or contribute in, ultimately saving on-site resources by sharing the computing tasks with the user community. 
-
-{\it Cross-development and integration between labs is not well  because of... We aim to overcome this issues by ....}
-
-Here we describe in details an attempt to provide such a collaborative framework for the analysis of synchrotron tomographic data that has the potential to unify the effort of different facilities and beamlines performing similar tasks. The basic principles of this  Python/C++ based framework, called {\it tomopy}, are: OS and data format independent, parallelizable, modular and supporting a functional programming style that many researchers in Academia prefer. 
+There are often strong similarities within the same class of instruments that are not systematically utilized to build a coordinated software development platform or framework where each facility and user group can take advantage from or contribute in, ultimately saving on-site resources by sharing the computing tasks with the user community. Here we describe in detail an attempt to provide such a collaborative framework for the analysis of synchrotron tomographic data that has the potential to unify the effort of different facilities and beamlines performing similar tasks. The basic principles of this  Python/C++ based framework, called {\it TomopPy}, are: OS and data format independent, parallelizable, modular and supporting a functional programming style that many researchers in Academia prefer. 
 
 
 \section{Background}
 
-{\it Which other facilities and beamlines it is (is expected to be) used? Touch the idea of Data Exchange (once this issue is overcome ...). Examples of collaborations with Academia?}
-
 When it comes to the digital storage of tomographic experimental data and the development of analysis tools at synchrotron light sources around the world, the situation is very heterogeneous. As different research teams and instruments have grown at various facilities, they have often developed local data and analysis models based on instrument hardware specificity and often drawing upon the particular preferences of a scientist writing software. 
 
-{\it A little bit of background history of APS practices. Touch ongoing LDRD project. What is going on at other beamlines and other Labs? Other projects addressing this issues?}
-
-Many tomographic analysis tools utilize licensed, and often expensive, software packages like Matlab and IDL, other rely on specific, and often complex to maintain, computing infrastructure like MPI-based CPU or GPU clusters.
-
-The availability of inexpensive multi-core CPU workstation and the reduced cost of computer memory  allowed to simplify the computing infrastructure required to process tomographic data \cite{rivers_spie_2012}, and started the development of single workstation tools able to perform most computing tasks. 
+Many tomographic analysis tools utilize licensed, and often expensive, software packages like Matlab (Mathworks) and IDL (Exelis VIS), others rely on specific, and often complex to maintain, computing infrastructure like MPI-based CPU or GPU clusters. The availability of inexpensive multi-core CPU workstation and the reduced cost of computer memory  allowed to simplify the computing infrastructure required to process tomographic data \cite{rivers_spie_2012}, and started the development of single workstation tools able to perform most computing tasks. 
 
 This transition is affecting all major synchrotron facilities where new effort is now dedicated into developing new tools that can be deployed at the facility for real time processing as well as distributed to users for off site data processing.
 
 
-
 \section{TomoPy framework}
-\subsection{Programming paradigm}
 
 The differences between academia and industry. Mention common coding practices in Academia. People in Academia are leaned towards functional programming.
 
 Modularity is favored. The overall effect of removing a module on the package is tried to be minimized.
 
-\subsection{Structure}
 
 Explain code structure. Functions and interfaces with the code-base. Touch Data Exchange and data converters (give a complete list of converters and how they can be implemented). Explain data domain module (preprocessing), data-to-image domain module (recon) and image domain module (post process). Mention about visualization (discuss about Mayavi, Avizo, Amira, etc.) and what is planned.
 
 Put a diagram figure and explain throughly.
-
-\subsection{Computing platforms}
 
 There are a number of viable options to to digest such high-throughput data and facilitate the computational analysis as a means of utilizing technological advancements. GPUs, CPUs and scalability.
 
