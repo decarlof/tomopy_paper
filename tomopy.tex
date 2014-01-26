@@ -86,42 +86,21 @@ Many tomographic analysis tools utilize licensed, and often expensive, software 
 This transition is affecting all major synchrotron facilities where new effort is now dedicated into developing new tools that can be deployed at the facility for real time processing as well as distributed to users for off site data processing.
 
 
-\section{TomoPy framework}
+\section{TomoPy: A python based framework}
 
-The differences between academia and industry. Mention common coding practices in Academia. People in Academia are leaned towards functional programming.
+There is no free lunch when it comes to the integration of analysis methods. For example, Matlab's or IDL's coding practice which is based on matrix and linear algebra operations that many researchers get accustomed to but licensing fees are pricier than the alternatives. R, as an open-source alternative, offers a wide variety of statistical data analysis tools but has a high learning curve and is usually hard to maintain large projects. Python with its standard library on the other hand provides a modular, readable and manageable framework that researchers can use freely or contribute easily without facing any hassles. Besides, the native EPICS control software for synchrotron instruments is written in Python. These features combine to make Python the method of choice for development framework.
 
-Modularity is favored. The overall effect of removing a module on the package is tried to be minimized.
-
-
-Explain code structure. Functions and interfaces with the code-base. Touch Data Exchange and data converters (give a complete list of converters and how they can be implemented). Explain data domain module (preprocessing), data-to-image domain module (recon) and image domain module (post process). Mention about visualization (discuss about Mayavi, Avizo, Amira, etc.) and what is planned.
-
-Put a diagram figure and explain throughly.
-
-There are a number of viable options to to digest such high-throughput data and facilitate the computational analysis as a means of utilizing technological advancements. GPUs, CPUs and scalability.
-
-GPU computing: The emergent computational potential of graphical processing units (GPUs) in the recent past has led to a great interest of research and development in ways to leverage GPUs for computationally intensive tasks. However, the memory of a single GPU is still not sufficiently large enough to digest large tomographic datasets without avoiding excessive input/output (I/O) overhead. 
-
-CPU computing on dedicated workstations: Current trend in processor design is towards chips with multiple low-power consuming cores which leads to a new layer of sophistication in code development. More hands-on control over data and is preferable in terms of support and development projects.
-
-Scalability with clusters of GPUs or CPUs. APS has  access to Mira, BNL uses NERSC. Others? Touch data transfer issues. Users have less control over data. Large computer-clusters generally require an efficient queuing optimization, computation times are highly correlated with the demand.  
-
-Discuss input output formats. Mention ongoing attempts :Data Exchange.
-
-We aim an open open source platform that everybody can contribute and install easily.
-
-\section{Development}
+Data processing in synchrotrons is essentially modular in nature such that the processes can be divided into a number of small independent steps. A natural way to segment the processes is to group functions according to the similarities in transformations applied on data as depicted in figure. 
 
 Explain how anyone can contribute. How it is distributed. BSD License. Documentation.
 
 \section{Methods} 
 
-In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of  measurement together with the rotation angle information is the entry point of the analysis pipeline.
+In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of measurement together with the rotation angle information is the entry point of the analysis pipeline.
 
-The framework is divided into three main modules as given in figure~1.
+\subsection{Pre-processing module}
 
-Present here the concept of pipeline for data processing and distribution
-
-\subsection{Pre-processing methods}
+Preprocessing module consists of denoising functions and aims to prepare data for the image reconstruction.
 
 \subsubsection{Normalization}
 
