@@ -110,20 +110,21 @@ Tomographic data processing at synchrotrons is essentially modular in nature suc
 
 In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of measurement together with the rotation angle information are the entry point of the analysis pipeline.
 
-we organized tomopy based on the three main categories based on transformation types
+We organized tomoPy in three main categories, pre-processing, reconstruction, post-reconstruction, based on transformation types. Below are the list of function for each category currently implemented in tomoPy.
+
 \subsection{Pre-processing module}
 
-Preprocessing module consists of denoising functions and aims to prepare data for the image reconstruction.
+Preprocessing module consists of de-noising functions and aims to prepare data for the image reconstruction.
 
 \subsubsection{Normalization}
 
-The need for this acquisition is to compensate for the effect of optical components in the beam path which are superimposed on the projections and show up artifacts in reconstructed images. 
+The need for this processing step,also called flat field correction, is to compensate for the effect of optical components in the beam path which are superimposed on the projections and show up artifacts in reconstructed images. 
 
 \subsubsection{Ring removal:}
 
-The reconstruction quality can be dramatically degraded when local inhomogeneities consistently appear in every projection data.  This is usually caused by the impurities of the scintillation detector and can not be totally removed with the flat-field correction. These measurement artifacts usually stand out as vertical stripes in sinograms and are transformed to reconstructions as ring shaped artifacts. The process of clearing these artifacts are called as the ring-removal. 
+The reconstruction quality can be dramatically degraded when local inhomogeneities consistently appear in every projection data.  This is usually caused by the impurities of the scintillation screen and non-linearity in the detector response and cannot be completely removed with the flat-field correction. These measurement artifacts usually stand out as vertical stripes in the sinograms and are transformed in the reconstructions as ring shaped artifacts. The process of clearing these artifacts is called ring-removal. 
 
-There are numerous ways to correct these effects. The easiest and computationally most effective version is the median filtering along the sinogram. Median filtering works nicely without compromising reconstruction quality if the stripes are a few pixel width. One of the most powerful methods is the Wavelet-Fourier method which exploits the appearance of the 
+There are numerous ways to correct these effects. The easiest and computationally most effective version is the median filtering along the sinogram. Median filtering works nicely without compromising reconstruction quality if the stripes are a few pixel width. One of the most powerful methods is the Wavelet-Fourier method which exploits the appearance of the ....
 
 \subsubsection{Phase retrieval}
 
@@ -140,11 +141,9 @@ Phase-correlation: Correction of wabbling in images. Alignment for multi-step ph
 
 A 180 degrees rotation of the sample is generally sufficient to efficiently solve the reconstruction problem. However for some samples, especially when the sample size is larger than the field of view of the detector, a  rotation of 360 degrees can be used as an option for data acquisition. 
 
-\subsection{Reconstruction}
+\subsubsection{Centering}
 
-\subsubsection{Determination of rotation axis location}
-
-The quality of the image reconstruction mostly relies on an accurate estimation of the position of the rotation axis. One common approach to determine for the center of rotation is to calculate the distance of the sinogram's center of mass from the mid-point (cite?). Although, this method is computationally cheaper than the alternatives, its applicability is only limited to full 360 degree datasets which makes it impractical for many situations. Another approach is to exploit the systematic artifacts in reconstructed images due to shifts in the rotation center (see Figure~\ref{fig:OptimizeCenter2}), favorably within an optimization framework. In \textit{TomoPy} we utilize image entropy as a measure to evaluate the image quality. The corresponding cost function based on image entropy can be written as:
+The quality of the image reconstruction mostly relies on an accurate determination of rotation axis position in the projections.  One common approach to determine for the center of rotation is to calculate the distance of the sinogram's center of mass from the mid-point \cite{Azevedo}. Although, this method is computationally cheaper than the alternatives, its applicability is only limited to full 360 degree datasets which makes it impractical for many situations. Another approach is to exploit the systematic artifacts in reconstructed images due to shifts in the rotation center (see Figure~\ref{fig:OptimizeCenter2}), favorably within an optimization framework. In \textit{TomoPy} we utilize image entropy as a measure to evaluate the image quality. The corresponding cost function based on image entropy can be written as:
 \begin{equation}
 \arg \min_c \left\{\sum_i \sum_jH_{ij}\left[r(c)\right]\log_2 H_{ij}\left[r(c)\right]\right\}
 \end{equation}
@@ -175,7 +174,11 @@ The optimization problem is usually well-behaved and can be solved using any sui
 
 Determination of center of rotation.
 
-Gridrec. ART. 
+\subsection{Reconstruction}
+
+\subsubsection{Gridrec}
+
+\subsubsection{ART} 
 
 \subsection{Post reconstruction}
 
@@ -200,7 +203,7 @@ Appendix text.
 
 \ack{Acknowledgements}
 
-Work supported by U.S. Department of Energy, Office of Science, under Contract No. XXX.
+Use of the Advanced Photon Source, an Office of Science User Facility operated for the U.S. Department of Energy (DOE) Office of Science by Argonne National Laboratory, was supported by the U.S. DOE under Contract No. DE-AC02-06CH11357
 
      % References are at the end of the document, between \begin{references}
      % and \end{references} tags. Each reference is in a \reference entry.
