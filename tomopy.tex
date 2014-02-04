@@ -76,7 +76,7 @@ Abstract goes here.
 
 Analysis of large tomographic datasets at synchrotron light sources is becoming progressively more challenging  due to the increasing data acquisition rates that new technologies in X-ray sources and detectors enable. The next generation of synchrotron facilities that are currently under design or construction throughout the world will provide diffraction limited X-ray sources and is expected to boost the current data rates by several orders of magnitude and stressing the need for the development and integration of efficient analysis tools more than ever. Several synchrotron users, to take advantage of specific instrument characteristics and specifications,  already collect data at different facilities, but they are often left alone integrating this data with the available or home-grown software tools.
 
-There are often strong similarities within the same class of instruments that are not systematically utilized to build a coordinated software development platform or framework where each facility and user group can take advantage from or contribute in, ultimately saving on-site resources by sharing the computing tasks with the user community. Here we describe in detail an attempt to provide such a collaborative framework for the analysis of synchrotron tomographic data that has the potential to unify the effort of different facilities and beamlines performing similar tasks. The basic principles of this  Python/C++ based framework, called {\it TomoPy}, are: OS and data format independent, parallelizable, modular and supporting a functional programming style that many researchers in Academia prefer. 
+There are often strong similarities within the same class of instruments that are not systematically utilized to build a coordinated software development platform or framework where each facility and user group can take advantage from or contribute in, ultimately saving on-site resources by sharing the computing tasks with the user community. Here we describe in detail an attempt to provide such a collaborative framework for the analysis of synchrotron tomographic data that has the potential to unify the effort of different facilities and beamlines performing similar tasks. The basic principles of this Python/C++ based open-source framework, called {\it TomoPy}, are: OS and data format independent, parallelizable, modular and supporting a functional programming style that many researchers in Academia prefer. 
 
 
 \section{Background}
@@ -92,18 +92,9 @@ This transition is affecting all major synchrotron facilities where new effort i
 
 There is no free lunch when it comes to the integration of analysis methods. For example, Matlab's or IDL's coding practice which is based on matrix and linear algebra operations that many researchers get accustomed to come with pricy licensing fees compared to open source alternatives. R, \cite{r}, as an open-source alternative, offers a wide variety of statistical data analysis tools but has a steep learning curve and is usually hard to maintain for large projects. Python with its standard library on the other hand provides a modular, readable and manageable framework that researchers can use freely or contribute easily without facing any hassles. Besides, the native  control software running at several synchrotron facilities, EPICS, \cite{epics}, is interfaced to Python \cite{pyepics}, allowing data analysis and real-time feedback on the instrumentation status. These features make Python the method of choice for development framework.
 
-Tomographic data processing at synchrotrons is essentially modular in nature such that the processes can be divided into a number of small independent steps. A natural way to segment the processes is to group functions according to the similarities in transformations applied on data as depicted in figure \ref{fig:ProcessSegmentation}. 
+Tomographic data processing at synchrotrons is essentially modular in nature such that the processes can be divided into a number of small independent steps. A natural way to segment the processes is to group functions according to the similarities in transformations applied on data as depicted in figure \ref{fig:ProcessSegmentation}. The first step is to convert data into a compatible HDF5 dataset. The data conversion and the assignment of metadata is carried out by the Data Exchange module which is currently supporting a wide variety of data formats. Once the HDF5 dataset is ready, a set of methods is available under preprocessing module to prepare data for reconstruction. The common denominator of these transformations is that the domain and codomain are the same data space. These include data normalization, stripe removal, alignment corrections and denoising functions like median filtering or zinger removal to prepare data for reconstruction. Additionally, for phase-contrast datasets, phase retrieval is considered as a preprocessing step and falls into this module. The next module in the pipeline is the reconstruction module which contains functions that maps data from data space into the image space. As the default method, TomoPy uses Gridrec, which is a linear Fourier transform based method similar to the filtered-backprojection method. The main difference is that it samples the complete Fourier domain before transforming back to the spatial domain. TomoPy also provide 2-dimensional and 3-dimensional ray-tracing algorithms which can be generically used to construct any nonlinear reconstruction method without much programming hurdle. Besides these methods, the module includes a number of handy methods to determine several parameters like the rotation center or tilt angle which are essential for any reconstruction method. The last module before data storage include methods that perform transformations on image space such as quality quantification analysis or simple histogram-based segmentation methods.  The utility functions or that can not be placed into the processing pipeline are usually placed inside the tools module for an easy access from all modules. 
 
-
-\onecolumn
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{fig_framework.eps}
-\caption{Processes Segmentation}
-\label{fig:ProcessSegmentation}
-\end{figure}
-\twocolumn
-
+TomoPy is open-source, and distributed with a BSD lIcense.
 {\it Explain how anyone can contribute. How it is distributed. BSD License. Documentation.}
 
 \section{Methods} 
@@ -151,6 +142,31 @@ with $c$ being the unknown rotation center, $r(c)$ is the reconstructed image wh
 
 The optimization problem is usually well-behaved and can be solved using any suitable optimization method in short times. For example, figure~\ref{fig:OptimizeCenter2} plots the number of iterations of the Nelder-Mead method for different initial rotation centers. The method coverges to the correct rotation center in about 20 iterations for a wide range of initial points which makes it a method of choice if robustness is desired. The problem is quite well-behaved unless one picks a very far off-center position (see figure~\ref{fig:OptimizeCenter2}). The central point of the image as an initial guess is generally more than enough for many datasets to converge to the correct rotation center in an automated fashion.
 
+\subsection{Reconstruction}
+Nonlinear methods that try to minimize for data fidelity based on a system model is gaining popularity due to the superior image reconstruction that they offer despite the dramatically increased computation complexity and times. Such methods also refereed to as the model-based methods require an accurate forward model which mainly relies on an efficient ray-tracing implementation. 
+
+
+\subsection{Storing Data}
+
+Formats supported. Many are happy with TIFF. 
+
+Explain storing provenance and its importance.
+
+\section{Discussions}
+
+Wrap the important points, vision and aims and conclude.
+
+
+\onecolumn
+\begin{figure}
+\centering
+%\includegraphics[width=\textwidth]{fig_framework.eps}
+\caption{Processes Segmentation}
+\label{fig:ProcessSegmentation}
+\end{figure}
+\twocolumn
+
+
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{fig_center1.eps}
@@ -165,33 +181,6 @@ The optimization problem is usually well-behaved and can be solved using any sui
 \label{fig:OptimizeCenter2}
 \end{figure}
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{fig_center3.eps}
-\caption{The image entropy as a function of rotation center in pixels.}
-\label{fig:OptimizeCenter3}
-\end{figure}
-
-
-\subsection{Reconstruction}
-
-\subsubsection{Gridrec}
-
-\subsubsection{ART} 
-
-\subsection{Post reconstruction}
-
-??
-
-\subsection{Storing Data}
-
-Formats supported. Many are happy with TIFF. 
-
-Explain storing provenance and its importance.
-
-\section{Discussions}
-
-Wrap the important points, vision and aims and conclude.
 
 \appendix
 \section{Appendix title}
