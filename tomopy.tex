@@ -92,67 +92,57 @@ This transition is affecting all major synchrotron facilities where new effort i
 
 There is no free lunch when it comes to the integration of analysis methods. For example, Matlab's or IDL's coding practice which is based on matrix and linear algebra operations that many researchers get accustomed to come with pricy licensing fees compared to open source alternatives. R, \cite{r}, as an open-source alternative, offers a wide variety of statistical data analysis tools but has a steep learning curve and is usually hard to maintain for large projects. Python with its standard library on the other hand provides a modular, readable and manageable framework that researchers can use freely or contribute easily without facing any hassles. Besides, the native  control software running at several synchrotron facilities, EPICS, \cite{epics}, is interfaced to Python \cite{pyepics}, allowing data analysis and real-time feedback on the instrumentation status. These features make Python the method of choice for development framework.
 
-Tomographic data processing at synchrotrons is essentially modular in nature such that the processes can be divided into a number of small independent steps. A natural way to segment the processes is to group functions according to the similarities in transformations applied on data as depicted in figure \ref{fig:ProcessSegmentation}. The first step is to convert data into a compatible HDF5 dataset. The data conversion and the assignment of metadata is carried out by the Data Exchange module which is currently supporting a wide variety of data formats. Once the HDF5 dataset is ready, a set of methods is available under preprocessing module to prepare data for reconstruction. The common denominator of these transformations is that the domain and codomain are the same data space. These include data normalization, stripe removal, alignment corrections and denoising functions like median filtering or zinger removal to prepare data for reconstruction. Additionally, for phase-contrast datasets, phase retrieval is considered as a preprocessing step and falls into this module. The next module in the pipeline is the reconstruction module which contains functions that maps data from data space into the image space. As the default method, TomoPy uses Gridrec, which is a linear Fourier transform based method similar to the filtered-backprojection method. The main difference is that it samples the complete Fourier domain before transforming back to the spatial domain. TomoPy also provide 2-dimensional and 3-dimensional ray-tracing algorithms which can be generically used to construct any nonlinear reconstruction method without much programming hurdle. Besides these methods, the module includes a number of handy methods to determine several parameters like the rotation center or tilt angle which are essential for any reconstruction method. The last module before data storage include methods that perform transformations on image space such as quality quantification analysis or simple histogram-based segmentation methods.  The utility functions or that can not be placed into the processing pipeline are usually placed inside the tools module for an easy access from all modules. 
-
-TomoPy is open-source, and distributed with a BSD lIcense.
-{\it Explain how anyone can contribute. How it is distributed. BSD License. Documentation.}
+Tomographic data processing at synchrotrons is essentially modular in nature such that the processes can be divided into a number of independent, and in many situations serialized, steps. This allows a degree of control for the entire process by checking the quality of the steps taken. A natural way to segment the processes is to group functions according to the similarities in transformations applied on data as depicted in figure \ref{fig:ProcessSegmentation}. The first step is to convert data into a compatible HDF5 dataset. The data conversion and the assignment of metadata is carried out by the Data Exchange module which is currently supporting a wide variety of data formats. Once the HDF5 dataset is ready, a set of modules is available to preprocess, reconstruct and analyze data. The following section  describe the analysis steps in the order they are performed.
 
 \section{Methods} 
 
 In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of measurement together with the rotation angle information are the entry point of the analysis pipeline.
 
-We organized tomoPy in three main categories, pre-processing, reconstruction, post-reconstruction, based on transformation types. Below are the list of function for each category currently implemented in tomoPy.
+\subsection{Pre-processing}
 
-\subsection{Pre-processing module}
+Once the data and the corresponding projection angles are imported from the HDF5 dataset, a set of default methods is available under the preprocessing module to prepare data for reconstruction. The common denominator of these transformations is that the domain and codomain are the same data space. 
 
-Preprocessing module consists of de-noising functions and aims to prepare data for the image reconstruction.
+TODO: wrap pre-processing methods more generally than explaining each in detail. Emphasize only the core points.
 
-\subsubsection{Normalization}
+%These include data normalization, stripe removal, alignment corrections and denoising functions like median filtering or zinger removal to prepare data for reconstruction. Additionally, for phase-contrast datasets, phase retrieval is considered as a preprocessing step and falls into this module. 
+%
+%
+%Normalization: The need for this processing step,also called flat field correction, is to compensate for the effect of optical components in the beam path which are superimposed on the projections and show up artifacts in reconstructed images. 
+%
+%Ring removal: The reconstruction quality can be dramatically degraded when local inhomogeneities consistently appear in every projection data.  This is usually caused by the impurities of the scintillation screen and non-linearity in the detector response and cannot be completely removed with the flat-field correction. These measurement artifacts usually stand out as vertical stripes in the sinograms and are transformed in the reconstructions as ring shaped artifacts. The process of clearing these artifacts is called ring-removal. 
+%
+%There are numerous ways to correct these effects. The easiest and computationally most effective version is the median filtering along the sinogram. Median filtering works nicely without compromising reconstruction quality if the stripes are a few pixel width. One of the most powerful methods is the Wavelet-Fourier method \cite{Munch:09} which exploits the appearance of the ....
+%
+%Phase retrieval Single-step methods. \cite{Paganin_2002} Touch maybe briefly multi-energy approaches with energy-selective measurements.
+%
+%
+%Registration: Data fusion: Local tomography. 
+%
+%Phase-correlation: Correction of wabbling in images. Alignment for multi-step phase retrieval.
+%
+%A 180 degrees rotation of the sample is generally sufficient to efficiently solve the reconstruction problem. However for some samples, especially when the sample size is larger than the field of view of the detector, a  rotation of 360 degrees can be used as an option for data acquisition. 
 
-The need for this processing step,also called flat field correction, is to compensate for the effect of optical components in the beam path which are superimposed on the projections and show up artifacts in reconstructed images. 
+\subsection{Reconstruction}
 
-\subsubsection{Ring removal:}
+The next module in the pipeline is the reconstruction module which contains functions that maps data from data space into image space. There are numerous methods suitable for this task each having both strengths and weaknesses depending on the applied data and timing constraints. As the default method, TomoPy provides Gridrec, which is a linear method that relies on discrete Fourier transforms of data similar to the filtered-backprojection method. The main difference is that it samples the Fourier domain on a regular grid before transforming back to the spatial domain. Utilizing fast Fourier transforms on regular grids outperforms other methods in terms of computational speed and is usually desired for quick reconstructions.
 
-The reconstruction quality can be dramatically degraded when local inhomogeneities consistently appear in every projection data.  This is usually caused by the impurities of the scintillation screen and non-linearity in the detector response and cannot be completely removed with the flat-field correction. These measurement artifacts usually stand out as vertical stripes in the sinograms and are transformed in the reconstructions as ring shaped artifacts. The process of clearing these artifacts is called ring-removal. 
+One of the key goals of the framework is to render the integration of nonlinear reconstruction methods possible in this framework. Nonlinear methods, also referred to as the model-based methods, try to minimize for data fidelity based on a system model, and in principle, they all require an accurate forward model which mainly relies on an efficient ray-tracing implementation. To serve on this purpose, TomoPy provide 2-dimensional and 3-dimensional ray-tracing algorithms that one can use to construct any nonlinear reconstruction method without much programming hurdle. We also provide models for various imaging components such as the stages, detectors and source characteristics, to be available in case an accurate forward model is required. 
 
-There are numerous ways to correct these effects. The easiest and computationally most effective version is the median filtering along the sinogram. Median filtering works nicely without compromising reconstruction quality if the stripes are a few pixel width. One of the most powerful methods is the Wavelet-Fourier method \cite{Munch:09} which exploits the appearance of the ....
-
-\subsubsection{Phase retrieval}
-
-Single-step methods. \cite{Paganin_2002}
-
-Touch maybe briefly multi-energy approaches with energy-selective measurements.
-
-
-\subsubsection{Registration}
-
-Data fusion: Local tomography. 
-
-Phase-correlation: Correction of wabbling in images. Alignment for multi-step phase retrieval.
-
-A 180 degrees rotation of the sample is generally sufficient to efficiently solve the reconstruction problem. However for some samples, especially when the sample size is larger than the field of view of the detector, a  rotation of 360 degrees can be used as an option for data acquisition. 
-
-\subsubsection{Centering}
-
-The quality of the image reconstruction mostly relies on an accurate determination of rotation axis position in the projections.  One common approach to determine for the center of rotation is to calculate the distance of the sinogram's center of mass from the mid-point \cite{Azevedo}. Although, this method is computationally cheaper than the alternatives, its applicability is only limited to full 360 degree datasets which makes it impractical for many situations. Another approach is to exploit the systematic artifacts in reconstructed images due to shifts in the rotation center \cite{donath_spie_2006}, see Figure~\ref{fig:OptimizeCenter2}, favorably within an optimization framework. In \textit{TomoPy} we utilize image entropy as a measure to evaluate the image quality. The corresponding cost function based on image entropy can be written as:
+The success of the reconstructions usually require a good estimate of several geometrical parameters such as the rotation center. One common way to estimate it is to calculate the distance of sinogram's center of mass to the mid-point \cite{Azevedo}. Although, this method is computationally cheaper than the alternatives, its applicability is only limited to uniformly sampled 360 degree datasets which makes it impractical for many situations. Another approach is to exploit the systematic artifacts in reconstructed images due to shifts in the rotation center \cite{donath_spie_2006}, see Figure~\ref{fig:OptimizeCenter2}, favorably within an optimization framework. TomoPy utilizes Shannon entropy as a measure to evaluate the image quality with the corresponding cost function:
 \begin{equation}
 \arg \min_c \left\{\sum_i \sum_jH_{ij}\left[r(c)\right]\log_2 H_{ij}\left[r(c)\right]\right\}
 \end{equation}
-with $c$ being the unknown rotation center, $r(c)$ is the reconstructed image which is a function of $c$, and $H$ is the 2-D histogram of $r(c)$. 
+with $c$ being the unknown rotation center, $r(c)$ is the reconstructed image which is a function of $c$, and $H$ is the 2-D histogram of $r(c)$. The optimization problem is usually well-behaved and can be solved using any suitable optimization method in short times. For example, figure~\ref{fig:OptimizeCenter2} plots the cost function for different rotation centers. A simplex search algorithm converges to the correct rotation center usually in less than twenty iterations for a wide range of initial points which makes it a method of choice if robustness is desired. The central point of the image as an initial guess is generally more than enough for many datasets to find an accurate center in an automated fashion.
 
-The optimization problem is usually well-behaved and can be solved using any suitable optimization method in short times. For example, figure~\ref{fig:OptimizeCenter2} plots the number of iterations of the Nelder-Mead method for different initial rotation centers. The method coverges to the correct rotation center in about 20 iterations for a wide range of initial points which makes it a method of choice if robustness is desired. The problem is quite well-behaved unless one picks a very far off-center position (see figure~\ref{fig:OptimizeCenter2}). The central point of the image as an initial guess is generally more than enough for many datasets to converge to the correct rotation center in an automated fashion.
+\subsection{Post-processing and data storage}
 
-\subsection{Reconstruction}
-Nonlinear methods that try to minimize for data fidelity based on a system model is gaining popularity due to the superior image reconstruction that they offer despite the dramatically increased computation complexity and times. Such methods also refereed to as the model-based methods require an accurate forward model which mainly relies on an efficient ray-tracing implementation. 
+For some applications further processing steps such as segmentation of regions or a quantification analysis may be desired. Several commercial softwares like Amira or Avizo can provide comprehensive visualization and analysis tools, but for some simpler tasks they may be a little overkill. In TomoPy we intend to provide a number of post-processing functions, the most noteworthy of which is the segmentation of regions to acquire quantitative information about the sample based on image histograms. The success of this step is highly dependent on the previous transformations applied on the data, but modern methods like Wavelet-Fourier filtering to remove ring artifacts in reconstructed images together with the total variation type regularization methods renders an easy segmentation possible. 
 
-
-\subsection{Storing Data}
-
-Formats supported. Many are happy with TIFF. 
-
-Explain storing provenance and its importance.
+The output data can be exported to any format that the users desire. Although the majority of users prefer TIFF as a means of data format, TIFF files makes it hard to keep track of provenance information about metadata and attributes. In these cases where the metadata can't be written as a header or inside the file, all the provenance information including acquisition, analysis, storage and deployment processing steps are written on the original HDF5 data file. This allows reconstruction and analysis steps to be easily reproduced by reading information in the provenance group of the HDF5 file. 
 
 \section{Discussions}
+
+In this paper, we tried to give a brief glimpse of the methods in the framework, but more importantly to emphasize the importance of unifying the efforts towards the development of data analysis and reconstruction tools targeting synchrotron tomography applications. The success of such initiative, of course, depends on many factors the most critical of which is to ... , but we believe that ...
 
 Wrap the important points, vision and aims and conclude.
 
@@ -161,7 +151,7 @@ Wrap the important points, vision and aims and conclude.
 \begin{figure}
 \centering
 %\includegraphics[width=\textwidth]{fig_framework.eps}
-\caption{Processes Segmentation}
+\caption{The scotch of the data analysis pipeline.}
 \label{fig:ProcessSegmentation}
 \end{figure}
 \twocolumn
@@ -169,15 +159,15 @@ Wrap the important points, vision and aims and conclude.
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{fig_center1.eps}
-\caption{The images reconstructed using different centers of rotations: (a) Correct center, (b) 16 pixels  off-center horizontally, (c) 32 pixels off-center horizontally. Moving away from the correct rotation center causes image features disperse into ring shaped artifacts which in turn raises overall image entropy in the Shannon sense.}
+%\includegraphics[width=\textwidth]{fig_center1.eps}
+\caption{The reconstructed images obtained with different centers of rotations: (a) Correct center, (b) 16 pixels  off-center horizontally, (c) 32 pixels off-center horizontally.}
 \label{fig:OptimizeCenter1}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{fig_center2.eps}
-\caption{Error function as a function of iterations of the Nelder-Mead method for different initial rotation centers. }
+%\includegraphics[width=\textwidth]{fig_center2.eps}
+\caption{Plot of Shannon entropy as a function of different rotation centers.}
 \label{fig:OptimizeCenter2}
 \end{figure}
 
