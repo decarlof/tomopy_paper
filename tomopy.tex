@@ -96,11 +96,13 @@ Tomographic data processing at synchrotrons is essentially modular in nature suc
 
 \section{Methods} 
 
-In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. These two set of measurement together with the rotation angle information are the entry point of the analysis pipeline.
+In synchrotron tomography, the imaging sample is placed in the beam path and the x-ray intensity profiles on the detector (also called tomograms or projections) are acquired by rotating the sample during x-ray exposure. Almost all data acquisition protocols require another set of data taken in the absence of the sample which is usually refereed to as the white-field (or flat-field) measurements. The order of the multidimensional arrays is, by default, assumed as the fastest changing dimension being the last dimension, and the slowest changing dimension being the first dimension. These two set of measurement together with the rotation angle information are the entry point of the analysis pipeline.
 
-\subsection{Pre-processing}
+\subsection{Pre-processing} 
 
-Once the data and the corresponding projection angles are imported from the HDF5 dataset, a set of default methods is available under the preprocessing module to prepare data for reconstruction. The common denominator of these transformations is that the domain and codomain are the same data space. 
+Once the data and the corresponding projection angles are imported from the HDF5 dataset, a set of default methods is available under the preprocessing module simply to prepare data for reconstruction. The common denominator of these set of functions is that the range of the domain of the transformations lie in the same data space. Generally normalization is the initial step which is carried out by dividing the raw data to the averaged white field data not only to compensate different sensitivities and responses in each detector pixel but also to scale the images between 0 and 1 to obtain correct attenuation information about the sample. 
+
+For most datasets, a simple normalization can not satisfactorily correct for the detection artifacts, which are usually caused by the drifts in measurements or by the non-linearity in the detector response. These imperfections appear as stripes in sinogram and transform to image domain as ring shaped artifacts. This is particularly as issue for .... (Francesco: fly scan? slow data acquisition?) data acquisition where ..... . To correct for these ring artifacts, TomoPy employs the combined wavelet-Fourier filtering \cite{Munch:09} which is superior to many other filtering approaches in terms of robustness and conservation of image features. The method is essentially based on a set of transformations to condense the artifacts into a tiny region so that removal of them would not cause any deformations to actual features of the sample. 
 
 TODO: wrap pre-processing methods more generally than explaining each in detail. Emphasize only the core points.
 
