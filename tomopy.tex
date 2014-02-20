@@ -45,7 +45,8 @@
 
 \cauthor{Do\v{g}a}{G\"{u}rsoy}{dgursoy@aps.anl.gov}{} 
 \author{Francesco}{De Carlo}
-\author{?}{?}
+\author{Xianghui}{Xiao}
+\author{Chris}{Jacobsen}
 
 
 \aff{Advanced Photon Source, Argonne National Laboratory, 9700 S.~Cass Ave., Argonne IL 60439-4837 \country{USA}}
@@ -83,7 +84,7 @@ Here we describe in detail an attempt to provide such a collaborative framework 
 
 \section{Background}
 
-When it comes to the digital storage of tomographic experimental data and the development of analysis tools at synchrotron light sources around the world, the situation is very heterogeneous, just like Babel \cite{genesis}. As different research teams and instruments have grown at various facilities, they have often developed local data and analysis models based on the instrument hardware specificity and often drawing upon the particular preferences of a scientist writing software. 
+When it comes to the digital storage of tomographic experimental data and the development of analysis tools at synchrotron light sources around the world, the situation is very heterogeneous (just like Babel! \cite{genesis}). As different research teams and instruments have grown at various facilities, they have often developed local data and analysis models based on the instrument hardware specificity and often drawing upon the particular preferences of a scientist writing software. 
 
 Many tomographic analysis tools utilize licensed, and often expensive, software packages like Matlab \cite{matlab} and IDL \cite{exelis_vis}, others rely on specific, and often complex to maintain, computing infrastructure like MPI-based CPU or GPU clusters. This diversity and specializations hamper an integrated development environment and limit their long term use. On the other hand, modern chip design shows a clear trend toward integration of multiple processor cores and permits concurrency without a need for a dedicated cluster. The availability of inexpensive multi-core CPU workstations and the reduced cost of computer memory allow to considerably simplify the computing infrastructure required to process tomographic data \cite{rivers_spie_2012}, and make the development of single workstation tools able to perform most computing tasks at reasonable times. Besides, it allows the analysis to be performed on an off-site location, freeing on-site computational resources for other tasks. 
 
@@ -93,10 +94,9 @@ This transition is affecting all major synchrotron facilities where new effort i
 
 There is no free lunch when it comes to the integration of analysis methods. For example, Matlab's or IDL's coding practice which is based on matrix and linear algebra operations that many researchers get accustomed to come with pricy licensing fees compared to open source alternatives. R, \cite{r}, as an open-source alternative, offers a wide variety of statistical data analysis tools but is generally considered as having a steep learning curve and is usually hard to maintain for large projects. Low-level programming languages like C or Fortran provide the desired computational speed but lack in readability and may hinder a collaborative code development. Python with its standard library on the other hand provides a modular, readable and manageable framework that researchers can use freely or contribute easily without facing any hassles. Python is also a convenient wrapper to Python's C or Fortran Application Programming Interface (API) which makes it easy to expose a python API to existing C, C++ or Fortran codes. Besides, the native  control software running at several synchrotron facilities, EPICS, \cite{epics}, is interfaced to Python \cite{pyepics}, allowing simultaneous data analysis and real-time feedback on the instrumentation status. These features make Python the tool of choice for development framework.
 
-TomoPy relies on the Scientific Data Exchange, an HDF-5 based schema to store raw, analyzed and provenance data providing supports for all synchrotron based tomography system raw data formats \cite{data_exchange}.
-Intermediated analyzed or final reconstructed data can be stored used the same HDF-5 schema or distributed to the final user in any on the most common formats.
+TomoPy relies on the Scientific Data Exchange, an HDF-5 based schema to store raw, analyzed and provenance data providing supports for all synchrotron based tomography system raw data formats \cite{data_exchange}. Intermediated analyzed or final reconstructed data can be stored used the same HDF-5 schema or distributed to the final user in any on the most common formats.
 
-The data-driven pipeline of tomographic reconstruction allows for an easy kind of concurrency which is simply based on data parallelism. The tasks can be distributed through a queue into available processors and executed in parallel, and in many cases, there is either zero or minimal cross-talk between the distributed tasks which simplifies the implementation and exploitation of parallelism.
+The data-driven pipeline of tomographic reconstruction allows for an easy kind of concurrency which is simply based on data parallelism. The tasks can be distributed through a queue into available processors and executed in parallel, and in many cases, there is either zero or minimal cross-talk between the distributed tasks which simplifies the implementation and exploitation of parallelism. 
 
 Digestion of synchrotron tomographic data is essentially modular in nature such that the processes can be divided into a number of independent, and in many situations serialized, steps. A natural way of segmenting these processes is to group tasks according to the similarities in transformations applied on data, that is distributing tasks into modules like pre-processing (data-to-data transformations), reconstruction (data-to-image transformations) and post-processing (image-to-image transformations). This modular pipeline design allows a degree of control for the entire process by checking the quality of individual steps taken and at the same time improves the readability of the code. The following section describes the journey of data, through multiple transformations, from acquisition to image display as presented in Figure~\ref{fig:ProcessSegmentation}.
 
@@ -113,6 +113,7 @@ I_{normalized}=\frac{I_{raw}-I_{dark}}{I_{white}-I_{dark}}
 \end{equation}
 This step is essential for almost all the time not only to compensate different sensitivities and responses in each detector pixel but also to scale the images between 0 and 1 to obtain a reliable attenuation information about the sample according to the Beer-Lambert's law. 
 
+
 For most datasets, a simple normalization can not satisfactorily correct for the detection artifacts, which are usually caused by the drifts in measurements or by the non-linearity in the detector response. These imperfections appear as stripes in sinogram and transform to image domain as ring shaped artifacts. This is particularly as issue when defects are present on the scintillator screen or on the detector (bad pixel or non--linearity of the pixel response). To correct for these ring artifacts, a combined wavelet-Fourier filtering  \cite{Munch:09} is adopted. The filtering is essentially based on a set of transformations to condense the artifacts into a tiny region so that removal of them would not cause any deformations to actual features of the sample and is superior to many other filtering approaches in terms of robustness and conservation of image features (see Figure~\ref{fig:ProcessRing}).
 
 For some samples that are either beam sensitive or have low absorption contrast like biological specimens, an in-line Phase-Contrast Imaging (PCI) mode, which exploits Fresnel diffraction, is applied. In PCI, to retrieve phase out of the projected phase-contrast data, single-step methods are of primary importance because they allow a much faster scanning without a need to alter the detector position multiple times during data acquisition. PCI also may be utilized to separate the phase and the attenuation contrast, and ultimately to reconstruct the distribution of the real and imaginary part of the refractive index separately. Figure~\ref{fig:ProcessPhase} shows the phase-contrast data and the corresponding retrieved phase using the Paganin's filter.
@@ -123,15 +124,13 @@ For some samples that are either beam sensitive or have low absorption contrast 
 
 The next module in the pipeline is the reconstruction module which contains functions that maps data from data space into image space. There are numerous methods suitable for this task each having both strengths and weaknesses depending on the applied data and timing constraints. As the default method, we provide Gridrec \cite{donath_spie_2006}, which is a linear method that relies on discrete Fourier transforms of data similar to the filtered-backprojection method. The main difference is that it samples the Fourier domain on a regular grid before transforming back to the spatial domain. Utilizing fast Fourier transforms on regular grids outperforms other methods in terms of computational speed and is usually desired for quick reconstructions.
 
-The success of the reconstructions usually require a good estimate of several geometrical parameters such as the rotation center. One common way to estimate it is to calculate the distance of sinogram's center of mass to the mid-point \cite{Azevedo}. Although, this method is computationally cheaper than the alternatives, its applicability is only limited to uniformly sampled 360 degree datasets which makes it impractical for many situations. Another approach is to exploit the systematic artifacts in reconstructed images due to shifts in the rotation center \cite{donath_spie_2006}, see Figure~\ref{fig:OptimizeCenter2}, favorably within an optimization framework. To this end, we utilize Shannon entropy as a measure to evaluate the image quality with the corresponding cost function:
+The success of the reconstructions usually require a good estimate of several geometrical parameters such as the rotation center. One common way to estimate it is to calculate the distance of sinogram's center of mass to the mid-point \cite{Azevedo}. Although, this method is computationally cheaper than the alternatives, its applicability is only limited to uniformly sampled 360 degree datasets which makes it impractical for many situations. Another approach is to exploit the systematic artifacts in reconstructed images due to shifts in the rotation center \cite{donath_spie_2006}, see Figure~\ref{fig:OptimizeCenter1}, favorably within an optimization framework. To this end, we utilize Shannon entropy as a measure to evaluate the image quality with the corresponding cost function:
 \begin{equation}
 \arg \min_c \left\{\sum_i \sum_jH_{ij}\left[r(c)\right]\log_2 H_{ij}\left[r(c)\right]\right\}
 \end{equation}
 with $c$ being the unknown rotation center, $r(c)$ is the reconstructed image which is a function of $c$, and $H$ is the 2-D histogram of $r(c)$. The optimization problem is usually well-behaved and can be solved using any suitable optimization method in short times. For example, figure~\ref{fig:OptimizeCenter2} plots the cost function for different rotation centers. A simplex search algorithm converges to the correct rotation center usually in less than twenty iterations for a wide range of initial points which makes it a method of choice if robustness is desired. The central point of the image as an initial guess is generally more than enough for many datasets to find an accurate center in an automated fashion. This reconstruction based approach to correct for unknown geometrical parameters can as well be utilized for example to determine the tilt angle of the rotation axis.
 
-One of the key goals in reconstruction is to render the integration of nonlinear inversion methods possible in this framework. Nonlinear methods, also referred to as the model-based methods, try to minimize for data fidelity based on a system model, and in principle, all require an accurate forward model which mainly relies on an efficient ray-tracing implementation. 
-
-To serve on this purpose, we build 2-dimensional and 3-dimensional ray-tracing algorithms that one can use to construct any nonlinear reconstruction method without much time and trouble. We also provide models for various imaging components such as the stages, detectors and source characteristics, to be available in case an accurate forward model is required. More specific models can be added on top of the existing methods as desired.
+One of the key goals in reconstruction is to render the integration of nonlinear inversion methods possible in this framework. Nonlinear methods, also referred to as the model-based methods, try to minimize for data fidelity based on a system model, and in principle, all require an accurate forward model which mainly relies on an efficient ray-tracing implementation. To serve on this purpose, we build 2-dimensional and 3-dimensional ray-tracing algorithms that one can use to construct any nonlinear reconstruction method without much time and trouble. We also provide models for various imaging components such as the stages, detectors and source characteristics, to be available in case an accurate forward model is required. More specific models or methods can be added on top of the existing methods as desired.
 
 \subsection{Post-processing and data storage}
 
@@ -143,51 +142,8 @@ The output data can be exported to any format that the users desire. Although th
 
 In this paper, we tried to give a brief glimpse of the methods in the framework, but more importantly to emphasize the importance of unifying the efforts towards the development of data analysis and reconstruction tools targeting synchrotron tomography applications. The success of such initiative, of course, depends on many factors the most critical of which is to share data and more importantly software tool .. need to think more on this ...... , but we believe that ...
 
-
-\onecolumn
-\begin{figure}
-\centering
-%\includegraphics[width=\textwidth]{fig_framework.eps}
-\caption{The scotch of the data analysis pipeline.}
-\label{fig:ProcessSegmentation}
-\end{figure}
-\twocolumn
-
-\onecolumn
-\begin{figure}
-\centering
-%\includegraphics[width=\textwidth]{fig_ring.eps}
-\caption{Ring artifact removal.}
-\label{fig:ProcessRing}
-\end{figure}
-\twocolumn
-
-\onecolumn
-\begin{figure}
-\centering
-%\includegraphics[width=\textwidth]{fig_phase.eps}
-\caption{Phase retrieval.}
-\label{fig:ProcessPhase}
-\end{figure}
-\twocolumn
-
-\begin{figure}
-\centering
-%\includegraphics[width=\textwidth]{fig_center1.eps}
-\caption{The reconstructed images obtained with different centers of rotations: (a) Correct center, (b) 16 pixels  off-center horizontally, (c) 32 pixels off-center horizontally.}
-\label{fig:OptimizeCenter1}
-\end{figure}
-
-\begin{figure}
-\centering
-%\includegraphics[width=\textwidth]{fig_center2.eps}
-\caption{Plot of Shannon entropy as a function of different rotation centers.}
-\label{fig:OptimizeCenter2}
-\end{figure}
-
-
-\appendix
-\section{Appendix title}
+%\appendix
+%\section{Appendix title}
 
 Appendix text.
 
@@ -206,6 +162,33 @@ Use of the Advanced Photon Source, an Office of Science User Facility operated f
      % TABLES AND FIGURES SHOULD BE INSERTED AFTER THE MAIN BODY OF THE TEXT
      %-------------------------------------------------------------------------
 
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figs/ring_removal.eps}
+\caption{Reconstructed images before (a) and after (b) the combined wavelet-Fourier method for stripe removal is applied on normalized data.}
+\label{fig:ProcessRing}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figs/phase_retrieval.eps}
+\caption{The phase-contrast projection data (a). Recovered phase image obtained with the single-step phase retrieval method (b). The corresponding reconstructed images with and without phase retrieval is applied (c), (d).}
+\label{fig:ProcessPhase}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figs/center_optimize.eps}
+\caption{The reconstructed images obtained with different centers of rotations: (a) Correct center, (b) 16 pixels  off-center horizontally, (c) 32 pixels off-center horizontally.}
+\label{fig:OptimizeCenter1}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figs/center_costfunc.eps}
+\caption{Plot of Shannon entropy as a function of different rotation centers. }
+\label{fig:OptimizeCenter2}
+\end{figure}
 
  
 
