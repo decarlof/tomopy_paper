@@ -98,7 +98,7 @@ TomoPy relies on the Scientific Data Exchange, an HDF-5 based schema to store ra
 
 The data-driven pipeline of tomographic reconstruction allows for an easy kind of concurrency which is simply based on data parallelism. The tasks can be distributed through a queue into available processors and executed in parallel, and in many cases, there is either zero or minimal cross-talk between the distributed tasks which simplifies the implementation and exploitation of parallelism. 
 
-Digestion of synchrotron tomographic data is essentially modular in nature such that the processes can be divided into a number of independent, and in many situations serialized, steps. A natural way of segmenting these processes is to group tasks according to the similarities in transformations applied on data, that is distributing tasks into modules like pre-processing (data-to-data transformations), reconstruction (data-to-image transformations) and post-processing (image-to-image transformations). This modular pipeline design allows a degree of control for the entire process by checking the quality of individual steps taken and at the same time improves the readability of the code. The following section describes the journey of data, through multiple transformations, from acquisition to image display as presented in Figure~\ref{fig:ProcessSegmentation}.
+Digestion of synchrotron tomographic data is essentially modular in nature such that the processes can be divided into a number of independent, and in many situations serialized, steps. A natural way of segmenting these processes is to group tasks according to the similarities in transformations applied on data, that is distributing tasks into modules like pre-processing (data-to-data transformations), reconstruction (data-to-image transformations) and post-processing (image-to-image transformations). This modular pipeline design allows a degree of control for the entire process by checking the quality of individual steps taken and at the same time improves the readability of the code. The following section describes the journey of data, through multiple transformations, from acquisition to image display as presented in Figure~\ref{fig:Framework}.
 
 
 \section{Methods} 
@@ -161,6 +161,14 @@ Use of the Advanced Photon Source, an Office of Science User Facility operated f
      %-------------------------------------------------------------------------
      % TABLES AND FIGURES SHOULD BE INSERTED AFTER THE MAIN BODY OF THE TEXT
      %-------------------------------------------------------------------------
+
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{figs/framework.eps}
+\caption{TomoPy framework. The analysis chain is divided into pre-processing, reconstruction and post-processing modules. Any method or a collection of methods in any language can be hooked to one of these modules without compromising the modularity. A Python front-end is used to glue these modules and interact with the user. A customizable Python based multiprocessing interface is provided for time consuming computations.}
+\label{fig:Framework}
+\end{figure}
 
 \begin{figure}
 \centering
